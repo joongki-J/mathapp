@@ -585,7 +585,11 @@ async function startFly(){
 }
 async function tapFly(w){
   if(S.phase!=='fly')return; const g=GID, it=w._item;
-  if(it.g!==S.target.g){ wrongPick(w,false); return; }
+  if(it.g!==S.target.g){ clearTimeout(S.flyT); S.phase='landed'; S.drops++; sfx.bad(); w.classList.add('wrong');
+    ballsEl.querySelectorAll('.bw').forEach(o=>{ if(o!==w)o.classList.add('gone'); }); S.reveal=true; showTarget();
+    banner('안타!',true); coach('그건 "'+it.g+'"! '+S.stage.foe.n+' 안타'); say(['p_that',40,it.s,350,'p_foehit']);
+    await wait(900); if(g!==GID)return; await runBases(1,'foe'); if(g!==GID)return;
+    await wait(2300); if(g!==GID)return; startFly(); return; }
   clearTimeout(S.flyT); S.phase='caught'; S.drops=0; S.reveal=true; showTarget();
   const fr=field.getBoundingClientRect(), r=w.getBoundingClientRect(), cx=r.left-fr.left+r.width/2, cy=r.top-fr.top+r.height/2;
   w.style.transition='none'; w.style.top=cy+'px'; w.style.pointerEvents='none';
