@@ -487,7 +487,7 @@ const lanes=n=>n===2?[30,70]:n===3?[19,50,81]:[14,38,62,86];
 
 async function startGame(i){
   unlock(); sfx.tap(); const g=++GID;
-  S={stage:STAGES[i],idx:i,inning:1,half:0,kid:0,foe:0,bases:[null,null,null],outs:0,innRuns:0,speed:100,zone:30,sweep:1500,drops:0,miss:0,queue:[],target:null,phase:'idle'};
+  S={stage:STAGES[i],idx:i,inning:1,half:0,kid:0,foe:0,bases:[null,null,null],outs:0,innRuns:0,speed:100,zone:14,sweep:1500,drops:0,miss:0,queue:[],target:null,phase:'idle'};
   $('#foeName').textContent=S.stage.foe.n; $('#foeEm').textContent=S.stage.foe.e;
   clearBalls(); clearRunners(); setFigures(); hud(); show('game');
   $('#jumbo').classList.remove('listen'); $('#jlabel').textContent='이 글자 공을 찾아라!'; $('#jglyph').textContent='⚾'; $('#jemoji').textContent=''; $('#jword').textContent='';
@@ -588,7 +588,7 @@ function startFly(){
   coach(listenOnly()?'잘 듣고 던질 글자 공을 콕!':'같은 글자 공을 골라 던지자!'); sayTarget();
 }
 async function foeHit(text,seq,delay){
-  const g=GID; S.phase='landed'; S.drops++; S.zone=Math.min(40,S.zone+3); S.reveal=true; showTarget();
+  const g=GID; S.phase='landed'; S.drops++; S.zone=Math.min(50,S.zone+5); S.reveal=true; showTarget();
   banner('안타!',true); coach(text); say(seq);
   await wait(delay); if(g!==GID)return; await runBases(1,'foe'); if(g!==GID)return;
   await wait(2300); if(g!==GID)return; startFly();
@@ -604,7 +604,7 @@ async function pickDef(w){
   await wait(1500); if(g!==GID)return; startMeter();
 }
 function startMeter(){
-  const g=GID; S.phase='meter'; const zw=Math.min(46,S.zone+(S.drops>=2?8:0)), zx=rnd(3,97-zw); S.zx=zx; S.zw=zw; S.mp=0;
+  const g=GID; S.phase='meter'; const zw=S.zone, zx=rnd(3,97-zw); S.zx=zx; S.zw=zw; S.mp=0;
   const z=$('#zone'), bar=$('#mbar'); z.style.left=zx+'%'; z.style.width=zw+'%'; bar.style.left='0%';
   $('#meter').classList.add('on'); swingBtn.textContent='던져!'; swingBtn.classList.add('on');
   const t0=performance.now()+250, per=S.sweep;
@@ -623,7 +623,7 @@ async function throwBall(){
   bat.classList.remove('swing'); void bat.offsetWidth; bat.classList.add('swing');
   await wait(110); if(g!==GID)return;
   if(ok){
-    sfx.glove(); sfx.good(); stars(50,86,10); S.outs++; S.zone=Math.max(16,S.zone-2); S.sweep=Math.max(850,S.sweep*.94); hud();
+    sfx.glove(); sfx.good(); stars(50,86,10); S.outs++; S.sweep=Math.max(850,S.sweep*.94); hud();
     banner('스트라이크!',true); say('p_kout'); coach('스트라이크! 타자 아웃!'); sfx.cheer();
     await wait(1900); if(g!==GID)return; $('#meter').className=''; 
     if(S.outs>=3) switchHalf(); else startFly();
