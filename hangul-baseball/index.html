@@ -588,7 +588,7 @@ function startFly(){
   coach(listenOnly()?'잘 듣고 던질 글자 공을 콕!':'같은 글자 공을 골라 던지자!'); sayTarget();
 }
 async function foeHit(text,seq,delay){
-  const g=GID; S.phase='landed'; S.drops++; S.zone=Math.min(50,S.zone+5); S.reveal=true; showTarget();
+  const g=GID; S.phase='landed'; S.drops++; S.zone=Math.min(50,S.zone+1); S.reveal=true; showTarget();
   banner('안타!',true); coach(text); say(seq);
   await wait(delay); if(g!==GID)return; await runBases(1,'foe'); if(g!==GID)return;
   await wait(2300); if(g!==GID)return; startFly();
