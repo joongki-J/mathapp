@@ -353,7 +353,7 @@ h3{font-size:14.5px;margin:6px 0 0}
   function renderText(){
     var O=nOut(),N=15*O,cls=cfg.classes.join(", ");
     $("intro").innerHTML=ci===0?
-      '3×5 격자의 칸마다 가중치를 하나씩 둡니다. 예측값은 <b>칠한 칸의 가중치를 모두 더한 값</b>이고, 0.5 이상이면 8, 미만이면 1로 판정합니다. 가중치는 15개지만, 하나만 골라 움직이면 손실함수는 그 가중치에 대한 이차함수입니다.':
+      '3×5 격자의 칸마다 가중치를 하나씩 둡니다. 가중합은 <b>칠한 칸의 가중치를 모두 더한 값</b>이고, 0.5 이상이면 8, 미만이면 1로 판정합니다. 가중치는 15개지만, 하나만 골라 움직이면 손실함수는 그 가중치에 대한 이차함수입니다.':
       ci===1?
       '같은 자료를 출력 노드 2개로 분류합니다. 숫자 1 노드와 숫자 8 노드가 각자 가중합을 구하고, 소프트맥스로 확률로 바꾼 뒤 <b>확률이 더 큰 숫자</b>로 판정합니다. 기준값 0.5가 필요 없어지고, 가중치는 15 × 2 = 30개가 됩니다.':
       '숫자 7을 추가하고 출력 노드를 3개로 늘립니다. 세 노드의 가중합을 소프트맥스로 확률로 바꾼 뒤 <b>확률이 가장 큰 숫자</b>로 판정하고, 가중치는 15 × 3 = 45개입니다. 숫자가 늘어나면 출력 노드만 더 두면 됩니다.';
@@ -361,10 +361,10 @@ h3{font-size:14.5px;margin:6px 0 0}
       '정답은 숫자 1이면 <span class="m"><i>y</i> = 0</span>, 숫자 8이면 <span class="m"><i>y</i> = 1</span>입니다. 빨간 테두리는 지금의 가중치로 잘못 판정한 그림입니다. 칠한 칸은 흰색(값 1), 칠하지 않은 칸은 검은색(값 0)입니다.':
       '출력 노드마다 정답은 자기 숫자의 그림이면 1, 아니면 0입니다. 빨간 테두리는 지금의 가중치로 잘못 판정한 그림입니다. 칠한 칸은 흰색(값 1), 칠하지 않은 칸은 검은색(값 0)입니다.';
     $("form2").innerHTML=cfg.single?
-      '(예측값) = <i>w</i><sub>1</sub><i>p</i><sub>1</sub> + <i>w</i><sub>2</sub><i>p</i><sub>2</sub> + ⋯ + <i>w</i><sub>15</sub><i>p</i><sub>15</sub>':
+      '(가중합) = <i>w</i><sub>1</sub><i>p</i><sub>1</sub> + <i>w</i><sub>2</sub><i>p</i><sub>2</sub> + ⋯ + <i>w</i><sub>15</sub><i>p</i><sub>15</sub>':
       '(숫자 8 노드의 가중합) = <i>w</i><sub>8,1</sub><i>p</i><sub>1</sub> + <i>w</i><sub>8,2</sub><i>p</i><sub>2</sub> + ⋯ + <i>w</i><sub>8,15</sub><i>p</i><sub>15</sub>';
     $("note2").innerHTML='<span class="m"><i>p</i><sub><i>k</i></sub></span>는 <span class="m"><i>k</i></span>번째 칸을 칠했으면 1, 아니면 0입니다. '+(cfg.single?
-      '손실함수 <span class="m"><i>L</i></span>은 (예측값 − 정답)<sup>2</sup>의 평균입니다.':
+      '손실함수 <span class="m"><i>L</i></span>은 (가중합 − 정답)<sup>2</sup>의 평균입니다.':
       '출력 노드마다 가중치 15개가 따로 있습니다. <span class="m"><i>w</i><sub>8,1</sub></span>은 숫자 8 노드와 1번째 칸을 잇는 가중치이고, <span class="m"><i>w</i><sub>1,1</sub></span>은 숫자 1 노드와 1번째 칸을 잇는 가중치입니다. 손실함수 <span class="m"><i>L</i></span>은 모든 그림, 모든 출력 노드의 (가중합 − 정답)<sup>2</sup>을 더해 그림의 수로 나눈 값입니다.');
     $("stepAll").textContent=N+"개 모두 한 번 이동";
     $("note3").innerHTML=cfg.single?
@@ -496,30 +496,34 @@ h3{font-size:14.5px;margin:6px 0 0}
   function renderDerive(){
     var o=cur.so,k=cur.sk,W=wSym(),n=cur.data.length,m=0,h="";
     $("dTitle").innerHTML='<span class="m"><i>L</i>('+W+')</span>의 식이 만들어지는 과정';
-    var pv0=cfg.single?'예측값':'가중합',pk0='<i>p</i><sub>'+(k+1)+'</sub>';
+    var wp=function(j){return '<i>w</i><sub>'+(cfg.single?'':cfg.classes[o]+',')+j+'</sub><i>p</i><sub>'+j+'</sub>'},
+      full=wp(1)+' + '+wp(2)+' + ⋯ + '+wp(15);
+    var pv0='가중합',pk0='<i>p</i><sub>'+(k+1)+'</sub>';
     $("dIntro").innerHTML=(cfg.single?'':'<b style="color:'+DCOL[cfg.classes[o]]+'">'+nodeName(o)+'</b>의 계산입니다. ')+
       '그림마다 ①~④의 순서로 ('+pv0+' − 정답)<sup>2</sup>을 구합니다. <span class="m">'+W+'</span>'+jo('은','는')+' 파란 테두리 칸('+cellName(k)+')에 곱해지는 가중치입니다. '+
       '이 칸을 칠한 그림은 칸의 값이 1이라 '+pv0+'에 <span class="m">'+W+'</span>'+jo('이','가')+' 남고, 칠하지 않은 그림은 칸의 값이 0이라 <span class="m">'+W+'</span>'+jo('이','가')+' 사라집니다. '+
-      pv0+'은 <span class="m">'+W+pk0+' + (나머지 칸의 가중합)</span>입니다. 나머지 칸의 가중합은 그 그림에서 칠한 다른 칸들의 가중치를 지금 값으로 더한 수입니다. 가중치가 모두 0인 처음에는 이 값이 0이라 식에서 생략하고, 학습이 진행되면 식에 나타납니다.'+
+      '가중합 <span class="m">'+full+'</span>에서 <span class="m">'+W+pk0+'</span>'+jo('을','를')+' 뺀 나머지 14개 항의 합은 그 그림에서 칠한 다른 칸들의 가중치를 지금 값으로 더한 수입니다. 가중치가 모두 0인 처음에는 이 값이 0이고, 학습이 진행되면 0이 아닌 값이 됩니다.'+
       (cfg.single?' 정답은 숫자 8 그림이면 1, 숫자 1 그림이면 0입니다.':' 정답은 숫자 '+cfg.classes[o]+' 그림이면 1, 아니면 0입니다.');
-    var pv=cfg.single?'예측값':'가중합',pk='<i>p</i><sub>'+(k+1)+'</sub>';
+    var pv='가중합',pk='<i>p</i><sub>'+(k+1)+'</sub>';
     cur.data.forEach(function(d){
       var p=d.cells[k],rest=sums(d.cells)[o]-cur.W[o][k]*p,t0=target(d,o),c=rest-t0,raw,fin,line2;
       var z=Math.abs(rest)<0.005,rs=fmt(rest,2).replace(/^−(.*)$/,'($&)');
       if(p){
         m++;
         var cs=fmt(Math.abs(c),2);
-        line2=W+' × 1'+(z?'':' + '+rs);
-        raw='('+W+(z?' × 1':' + '+rs)+' − '+t0+')<sup>2</sup>';
+        line2=W+' × 1 + '+(z?'0':rs)+' = '+W+(z?'':' + '+rs);
+        raw='('+W+(z?'':' + '+rs)+' − '+t0+')<sup>2</sup>';
         fin=parseFloat(cs)===0?W+'<sup>2</sup>':'('+W+(c<0?' − ':' + ')+(z?trim(c):cs)+')<sup>2</sup>';
       }else{
-        line2=W+' × 0'+(z?' = 0':' + '+rs+' = '+fmt(rest,2));
+        line2=W+' × 0 + '+(z?'0':rs)+' = '+(z?'0':fmt(rest,2));
         raw='('+(z?'0':fmt(rest,2))+' − '+t0+')<sup>2</sup>';
         fin=z?trim(c*c):fmt(c*c,3);
       }
       h+='<div class="term '+(p?'has':'none')+'">'+mini(d.cells,k,true)+
         '<div class="st"><span class="lb">① 파란 테두리 칸의 값</span><span class="m">'+pk+' = '+p+'</span> <span>('+(p?'흰색, 칠함':'검은색, 칠하지 않음')+')</span></div>'+
-        '<div class="st"><span class="lb">② '+pv+' = <span class="m" style="font-size:12.5px">'+W+pk+'</span>'+(z?'':' + (나머지 칸의 가중합)')+'</span><span class="m">'+line2+'</span>'+(z?'<span class="lb">나머지 칸의 가중합은 0이라 생략</span>':'')+'</div>'+
+        '<div class="st"><span class="lb">② '+pv+'</span><span class="m">'+full+'</span>'+
+          '<span class="m" style="display:block">= '+W+pk+' + (나머지 항의 합)</span>'+
+          '<span class="m" style="display:block">= '+line2+'</span>'+(z?'<span class="lb">나머지 항의 합은 지금 0</span>':'')+'</div>'+
         '<div class="st"><span class="lb">③ 정답</span><span class="m">'+t0+'</span> <span>(숫자 '+d.c+' 그림)</span></div>'+
         '<div class="st"><span class="lb">④ ('+pv+' − 정답)<sup>2</sup></span><span class="m">'+raw+'</span><div class="formula num">= '+fin+'</div></div>'+
         '<span class="tag">'+(p?'<span class="m">'+W+'</span>에 대한 이차식':'<span class="m">'+W+'</span>'+jo('이','가')+' 없는 상수')+'</span></div>';
